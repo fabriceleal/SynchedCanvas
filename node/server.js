@@ -5,35 +5,42 @@ var	wsServer = require("websocket").server/*,
 		wsFrame 	= require("websocket").frame,
 		wsRouter = require("websocket").router*/;
 
-
+// Setup ws server
 var server = require("http").createServer();
-
 ws = new wsServer({ httpServer : server, autoAcceptConnections : true });
 
+// Start ws server
 server.listen(9876);
+
 
 var clients = [];
 
 var Ctx = function(){
+	this.current_id = 0;
+	this.state = {};
+	this.reset();
+};
 
+Ctx.prototype.reset = function(){
+	this.current_id++;
+	
+	this.state.pipeline_id = this.current_id;
+	this.state.pipeline = [];
 };
 
 Ctx.prototype.setFillStyle = function(color){
-	state.pipeline.push({ action: { fun:'setFillStyle', args:[ color ] }});
+	this.state.pipeline.push({ action_id: ++this.current_id , action: { fun:'setFillStyle', args:[ color ] }});
 
 	return this;
 };
 
 Ctx.prototype.fillRect = function(a, b, c, d){
-	state.pipeline.push({ action: { fun:'fillRect', args: [a, b, c, d] }});
+	this.state.pipeline.push({ action_id: ++this.current_id , action: { fun:'fillRect', args: [a, b, c, d] }});
 
 	return this;
 };
 
-var state = {
-	pipeline_id : 1,
-	pipeline : []
-};
+// Draw into context
 
 var ctx = new Ctx();
 ctx.setFillStyle('red').fillRect(30, 30, 50, 50);
@@ -54,9 +61,10 @@ ws.on("connect", function (conn) {
 					console.log('client '+ this.nickname +' says: ' + JSON.stringify(data, null, 3));
 
 					var packet = JSON.parse(data.utf8Data);
-					if(packet.type === "ask")
-						conn.sendUTF(JSON.stringify( { type: 'full', state: state} ));
-				
+					if(packet.type === "ask"){
+						conn.sendUTF(JSON.stringify( { type: 'full', state: ctx.state} ));
+					}
+
 				});
 
 		conn.on("close", 

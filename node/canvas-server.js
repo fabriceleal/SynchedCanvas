@@ -1,5 +1,9 @@
 (function(){
 
+	var message_handler = {
+
+	};
+
 	var canvasServer = function(){
 		this.server = require("http").createServer();
 		this.clients = [];
@@ -8,8 +12,14 @@
 		this.ws = new (require("websocket").server)({ httpServer : this.server, autoAcceptConnections : true });
 
 		var parent = this;
+
+		this.ctx.on("changed", function(ctx){
+			parent.broadcast({ type: "server_changed" });			
+		})
+
 		this.ws.on("connect", function (conn) {
-				console.log();
+
+				console.log('client connected! ' + conn.remoteAddress);
 
 				conn.nickname = conn.remoteAddress;
 				conn.on(
@@ -18,8 +28,9 @@
 							console.log('client '+ this.nickname +' says: ' + JSON.stringify(data, null, 3));
 
 							var packet = JSON.parse(data.utf8Data);
-							if(packet.type === "ask"){
-								conn.sendUTF(JSON.stringify( { type: 'full', state: parent.ctx.state} ));
+							if(packet.type === "ask" || packet.type === "ask_diff"){
+								// Send full state
+								conn.sendUTF(JSON.stringify( { type: 'full', state: parent.ctx.state } ));
 							}
 
 						});
@@ -46,7 +57,7 @@
 	};
 
 	canvasServer.prototype.broadcast = function (data){
-		this.clients.forEach(function(c){ c.sendUTF(data); });
+		this.clients.forEach(function(c){ c.sendUTF( JSON.stringify(data) ); });
 	};
 
 	canvasServer.prototype.listen = function( port ){

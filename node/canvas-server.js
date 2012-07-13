@@ -13,6 +13,8 @@
 
 		var parent = this;
 
+		// Broadcast to all clients that the context has changed. Clients must issue a request for all the drawing 
+		// calls needed to be done to synchronize the canvas'es
 		this.ctx.on("changed", function(ctx){
 			parent.broadcast({ type: "server_changed" });			
 		})
@@ -42,14 +44,14 @@
 								}else{
 									if( clientActionId !== parent.ctx.state.current_action_id ){
 
-										conn.sendUTF(
+										conn.sendUTF(JSON.stringify(
 												{
 													type: 'diff',
 													state: parent.ctx.state.pipeline.filter(
 															function(a){
 																return a.action_id > clientActionId && a.action_id <= parent.ctx.state.current_action_id; 
-															});
-												});
+															})
+												}));
 										//--
 
 									}

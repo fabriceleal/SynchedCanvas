@@ -49,9 +49,10 @@
 		this.state.current_action_id = undefined;
 	};
 
-	var functions = ['setFillStyle', 'fillRect', 'setFont', 'fillText'];
+	var __functions = ['setFillStyle', 'fillRect', 'setFont', 'fillText', 'arc', 'beginPath', 'closePath', 'fill',
+			'setLineWidth', 'setStrokeStyle', 'stroke', 'clearRect'];
 
-	functions.forEach(function(f){
+	__functions.forEach(function(f){
 		eval(
 			'Ctx.prototype.' + f + ' = function(){' + 
 				'this.state.current_action_id = ++this.current_id;' +

@@ -1,14 +1,13 @@
 function setup( canvas ){
 	var ws = new WebSocket("ws://127.0.0.1:9876/");
-	var ctx = canvas.getContext('2d');	
+	var ctx = canvas.getContext('2d');
 
 
 	var last_pipeline_id = undefined;
 	var last_action_id = undefined;
-	var last_state = undefined;
 
 	var __privateSync = function(){
-		if(last_state === undefined){
+		if(last_pipeline_id === undefined){
 			ws.send(JSON.stringify({ type: 'ask' }));
 		} else {
 			ws.send(JSON.stringify({ type: 'ask_diff', current:{ pipeline_id: last_pipeline_id, action_id: last_action_id } }));
@@ -29,7 +28,8 @@ function setup( canvas ){
 		'shadowOffsetY',
 		'strokeStyle',
 		'textAlign',
-		'textBaseline'
+		'textBaseline',
+		'lineWidth'
 	];
 
 	var __functions = [
@@ -64,13 +64,13 @@ function setup( canvas ){
 		'scale',
 		'setAlpha',
 		'setCompositeOperation',
-		'setFillColor',
+		//'setFillColor',
 		'setLineCap',
 		'setLineJoin',
-		'setLineWidth',
+		//'setLineWidth',
 		'setMiterLimit',
 		'setShadow',
-		'setStrokeColor',
+		//'setStrokeColor',
 		'setTransform',
 		'stroke',
 		'strokeRect',
@@ -99,19 +99,27 @@ function setup( canvas ){
 			case "full":
 				response.state.pipeline.forEach(
 						function(a){
-							functions[a.action.fun].apply(ctx, a.action.args);
+							
+							try{ functions[a.action.fun].apply(ctx, a.action.args); }catch(e){ console.log(a.action.fun); };
 							last_action_id = a.action_id;
 						});
 				//---
 				last_pipeline_id = response.state.pipeline_id;
-				last_state = response.state;
 
 				break;
 			case "diff":
-				
+				response.state.forEach(
+						function(a){
+
+							functions[a.action.fun].apply(ctx, a.action.args);
+							
+							last_action_id = a.action_id;
+						});
+				//---
+
 				break;
 			case "server_changed":
-				__privateSync();
+				ret.sync();
 				break;
 		}
 		
@@ -125,6 +133,10 @@ function setup( canvas ){
 
 	ws.addEventListener("close", function() {
 		console.log('closed!');
+
+		// Wait 5000 seconds, tries to reconnect ...
+		setTimeout(function(){ setup(canvas); }, 5000);
+
 	}, false);
 
 	return ret;

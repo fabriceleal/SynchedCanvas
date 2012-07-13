@@ -1,6 +1,6 @@
 #!/usr/bin/node
 
-var server = new (require("./canvas-server.js").canvasServer)();
+var server = new (require("./node/canvas-server.js").canvasServer)();
 
 server.listen(9876);
 

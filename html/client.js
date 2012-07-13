@@ -28,7 +28,8 @@ function setup( canvas ){
 		'shadowOffsetY',
 		'strokeStyle',
 		'textAlign',
-		'textBaseline'
+		'textBaseline',
+		'lineWidth'
 	];
 
 	var __functions = [
@@ -63,13 +64,13 @@ function setup( canvas ){
 		'scale',
 		'setAlpha',
 		'setCompositeOperation',
-		'setFillColor',
+		//'setFillColor',
 		'setLineCap',
 		'setLineJoin',
-		'setLineWidth',
+		//'setLineWidth',
 		'setMiterLimit',
 		'setShadow',
-		'setStrokeColor',
+		//'setStrokeColor',
 		'setTransform',
 		'stroke',
 		'strokeRect',
@@ -98,7 +99,8 @@ function setup( canvas ){
 			case "full":
 				response.state.pipeline.forEach(
 						function(a){
-							functions[a.action.fun].apply(ctx, a.action.args);
+							
+							try{ functions[a.action.fun].apply(ctx, a.action.args); }catch(e){ console.log(a.action.fun); };
 							last_action_id = a.action_id;
 						});
 				//---
@@ -108,7 +110,9 @@ function setup( canvas ){
 			case "diff":
 				response.state.forEach(
 						function(a){
+
 							functions[a.action.fun].apply(ctx, a.action.args);
+							
 							last_action_id = a.action_id;
 						});
 				//---
@@ -129,6 +133,9 @@ function setup( canvas ){
 
 	ws.addEventListener("close", function() {
 		console.log('closed!');
+
+		// Wait 5000 seconds, tries to reconnect ...
+		setTimeout(function(){ setup(canvas); }, 5000);
 
 	}, false);
 

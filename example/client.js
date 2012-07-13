@@ -1,5 +1,5 @@
 function setup( canvas ){
-	var ws = new WebSocket("ws://192.168.23.194:9876/");
+	var ws = new WebSocket("ws://127.0.0.1:9876/");
 	var ctx = canvas.getContext('2d');	
 
 

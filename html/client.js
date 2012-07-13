@@ -1,14 +1,13 @@
 function setup( canvas ){
-	var ws = new WebSocket("ws://192.168.23.194:9876/");
-	var ctx = canvas.getContext('2d');	
+	var ws = new WebSocket("ws://127.0.0.1:9876/");
+	var ctx = canvas.getContext('2d');
 
 
 	var last_pipeline_id = undefined;
 	var last_action_id = undefined;
-	var last_state = undefined;
 
 	var __privateSync = function(){
-		if(last_state === undefined){
+		if(last_pipeline_id === undefined){
 			ws.send(JSON.stringify({ type: 'ask' }));
 		} else {
 			ws.send(JSON.stringify({ type: 'ask_diff', current:{ pipeline_id: last_pipeline_id, action_id: last_action_id } }));
@@ -104,11 +103,16 @@ function setup( canvas ){
 						});
 				//---
 				last_pipeline_id = response.state.pipeline_id;
-				last_state = response.state;
 
 				break;
 			case "diff":
-				
+				response.state.forEach(
+						function(a){
+							functions[a.action.fun].apply(ctx, a.action.args);
+							last_action_id = a.action_id;
+						});
+				//---
+
 				break;
 			case "server_changed":
 				ret.sync();
@@ -125,6 +129,7 @@ function setup( canvas ){
 
 	ws.addEventListener("close", function() {
 		console.log('closed!');
+
 	}, false);
 
 	return ret;

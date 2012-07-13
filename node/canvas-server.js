@@ -28,9 +28,32 @@
 							console.log('client '+ this.nickname +' says: ' + JSON.stringify(data, null, 3));
 
 							var packet = JSON.parse(data.utf8Data);
-							if(packet.type === "ask" || packet.type === "ask_diff"){
+							if(packet.type === "ask"){
 								// Send full state
 								conn.sendUTF(JSON.stringify( { type: 'full', state: parent.ctx.state } ));
+							}
+							if( packet.type === "ask_diff" ){
+
+								var clientPipelineId = packet.current.pipeline_id;
+								var clientActionId 	= packet.current.action_id;
+								
+								if( clientPipelineId !== parent.ctx.state.pipeline_id ){
+									conn.sendUTF(JSON.stringify( { type: 'full', state: parent.ctx.state } ));
+								}else{
+									if( clientActionId !== parent.ctx.state.current_action_id ){
+
+										conn.sendUTF(
+												{
+													type: 'diff',
+													state: parent.ctx.state.pipeline.filter(
+															function(a){
+																return a.action_id > clientActionId && a.action_id <= parent.ctx.state.current_action_id; 
+															});
+												});
+										//--
+
+									}
+								}
 							}
 
 						});

@@ -46,6 +46,7 @@
 	
 		this.state.pipeline_id = this.current_id;
 		this.state.pipeline = [];
+		this.state.current_action_id = undefined;
 	};
 
 	var functions = ['setFillStyle', 'fillRect', 'setFont', 'fillText'];
@@ -53,7 +54,8 @@
 	functions.forEach(function(f){
 		eval(
 			'Ctx.prototype.' + f + ' = function(){' + 
-				'this.state.pipeline.push({ action_id: ++this.current_id , action: { fun:"' + f + '", args: Array.prototype.slice.call(arguments) }}); '+
+				'this.state.current_action_id = ++this.current_id;' +
+				'this.state.pipeline.push({ action_id: this.state.current_action_id , action: { fun:"' + f + '", args: Array.prototype.slice.call(arguments) }}); '+
 				'this.onChanged(); ' + 
 				'return this;' +
 			'}');

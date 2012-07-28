@@ -1,9 +1,5 @@
 (function(){
 
-	var message_handler = {
-
-	};
-
 	var canvasServer = function(){
 		this.server = require("http").createServer();
 		this.clients = [];
